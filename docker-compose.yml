@@ -1,0 +1,28 @@
+version: '3.7'
+
+services:
+  # The n8n backend service
+  n8n:
+    image: n8nio/n8n
+    restart: unless-stopped
+    ports:
+      - "5678:5678"
+    environment:
+      # IMPORTANT: Replace "http://your-domain.com" with your server's public domain or IP address.
+      - N8N_CORS_ALLOWED_ORIGINS=http://your-domain.com
+      - WEBHOOK_URL=http://your-domain.com:5678/
+      - TZ=Asia/Kolkata # Change to your timezone if needed
+    volumes:
+      # This links to the n8n data on your server, keeping your workflows safe.
+      - ~/.n8n:/home/node/.n8n
+
+  # The React dashboard frontend service
+  dashboard:
+    # This tells Docker Compose to build an image using the Dockerfile
+    # in the current directory.
+    build: .
+    restart: unless-stopped
+    ports:
+      # This maps the dashboard to port 80, the standard HTTP port.
+      # You will access your dashboard at http://your-domain.com
+      - "80:80"
