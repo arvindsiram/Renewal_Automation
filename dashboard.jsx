@@ -3,8 +3,8 @@ import { Bell, Mail, MessageSquare, Briefcase, ChevronDown, ChevronUp, CheckCirc
 
 // --- N8N WEBHOOK URLs ---
 // IMPORTANT: Use the "Production URL" from your n8n Webhook node, not the "Test URL".
-const GET_RENEWALS_URL = 'https://renewal.onrender.com/webhook-test/920faf43-19cc-4758-ac77-70d4a9b746d8';
-const SEND_REMINDER_URL_BASE = 'https://renewal.onrender.com/webhook/06271733-f596-4b16-ae1d-fa28cfda2141';
+const GET_RENEWALS_URL = 'https://renewal-56rp.onrender.com/webhook/920faf43-19cc-4758-ac77-70d4a9b746d8';
+const SEND_REMINDER_URL_BASE = 'https://renewal-56rp.onrender.com/webhook/06271733-f596-4b16-ae1d-fa28cfda2141';
 
 const App = () => {
     const [renewals, setRenewals] = useState([]);
