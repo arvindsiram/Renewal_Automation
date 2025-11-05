@@ -40,6 +40,9 @@ const App = () => {
             // Initialize reminder statuses for the frontend using the corrected array
             const initialRenewals = dataArray.map(r => ({ ...r, reminders: { email: 'pending', whatsapp: 'pending', crm: 'pending' } }));
             setRenewals(initialRenewals);
+            if (Object.keys(data).length === 0) {
+      return "The fetch returned an empty JSON object ({}).";
+    }
 
         } catch (e) {
             if (e.name === 'AbortError') {
