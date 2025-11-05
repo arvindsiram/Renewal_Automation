@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Bell, Mail, MessageSquare, Briefcase, ChevronDown, ChevronUp, CheckCircle, Clock, RefreshCw } from 'lucide-react';
 
 // --- N8N WEBHOOK URLs ---
-// IMPORTANT: Use the "Production URL" from your n8n Webhook node, not the "Test URL".
 const GET_RENEWALS_URL = 'https://renewal-56rp.onrender.com/webhook/920faf43-19cc-4758-ac77-70d4a9b746d8';
 const SEND_REMINDER_URL_BASE = 'https://renewal-56rp.onrender.com/webhook/06271733-f596-4b16-ae1d-fa28cfda2141';
 
@@ -16,17 +15,14 @@ const App = () => {
         setIsLoading(true);
         setError(null);
 
-        // Set a 30-second timeout for the request.
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 30000); // 30000ms = 30 seconds
+        const timeoutId = setTimeout(() => controller.abort(), 30000); 
 
         try {
-            // This is the API call to your n8n workflow.
             const response = await fetch(GET_RENEWALS_URL, {
-                signal: controller.signal // Pass the abort signal to the fetch request
+                signal: controller.signal 
             });
 
-            // If the fetch completes, clear the timeout.
             clearTimeout(timeoutId);
 
             if (!response.ok) {
@@ -34,23 +30,33 @@ const App = () => {
             }
             const data = await response.json();
 
-            // FIX: Ensure the data is always an array. If n8n returns a single object, wrap it in an array.
-            const dataArray = Array.isArray(data) ? data : [data];
+            // 1. Ensure the data is always an array
+            const dataArray = Array.isArray(data) ? data : (data && Object.keys(data).length > 0 ? [data] : []);
 
-            // Initialize reminder statuses for the frontend using the corrected array
-            const initialRenewals = dataArray.map(r => ({ ...r, reminders: { email: 'pending', whatsapp: 'pending', crm: 'pending' } }));
+            // 2. --- NEW FIX ---
+            // Filter out any empty objects ({}) that n8n might have sent
+            const filteredData = dataArray.filter(item => 
+                item && Object.keys(item).length > 0
+            );
+    
+            // 3. Initialize reminder statuses using the *filtered* array
+            const initialRenewals = filteredData.map(r => ({ ...r, reminders: { email: 'pending', whatsapp: 'pending', crm: 'pending' } }));
             setRenewals(initialRenewals);
+            
+            // --- BUG FIX ---
+            // The variable was 'jsonData', changed to 'data'.
             if (Object.keys(data).length === 0) {
-      return "The fetch returned an empty JSON object ({}).";
-    }
+                console.log("The fetch returned an empty JSON object ({}).");
+            }
 
         } catch (e) {
+            // This 'catch' block handles if n8n stops and sends *nothing*
             if (e.name === 'AbortError') {
                 console.error("Fetch aborted due to timeout.");
                 setError("The request timed out because the n8n workflow is taking too long to respond.");
             } else {
                 console.error("Failed to fetch renewals:", e);
-                setError("Could not load renewal data. Please check the n8n workflow or CORS settings.");
+                setError("Could not load renewal data. n8n may have stopped or failed to respond.");
             }
             setRenewals([]); // Clear out any old data on error
         } finally {
@@ -84,6 +90,8 @@ const App = () => {
     }, {});
 
     const monthOrder = ["October", "November", "December", "January", "February", "March", "April", "May", "June", "July", "August", "September"];
+    
+    // This sort logic is fine
     const sortedMonths = Object.keys(groupedRenewals).sort((a, b) => {
         return monthOrder.indexOf(a) - monthOrder.indexOf(b);
     });
@@ -92,11 +100,9 @@ const App = () => {
         console.log(`Sending ${type} reminder for ${renewal.email}`);
         
         try {
-            // Trigger the specific n8n webhook for the action
             const response = await fetch(`https://renewal-56rp.onrender.com/webhook/06271733-f596-4b16-ae1d-fa28cfda2141`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                // Add the other details to the body
                 body: JSON.stringify({ 
                     email: renewal.email,
                     name: renewal.name,
@@ -109,9 +115,7 @@ const App = () => {
                 throw new Error('n8n workflow failed to execute reminder.');
             }
     
-            // If successful, update the UI to show "sent"
             setRenewals(prevRenewals => prevRenewals.map(r => {
-                // Use renewal.email to find the correct record to update
                 if (r.email === renewal.email) {
                     return { ...r, reminders: { ...r.reminders, [type]: 'sent' } };
                 }
@@ -160,9 +164,9 @@ const App = () => {
                     <div>
                         <div className="flex items-center gap-3">
                             <div className="bg-indigo-600 p-2 rounded-lg text-white">
-                               <Bell size={28} />
+                                <Bell size={28} />
                             </div>
-                             <h1 className="text-3xl font-bold text-gray-800">Upcoming Renewals Dashboard</h1>
+                            <h1 className="text-3xl font-bold text-gray-800">Upcoming Renewals Dashboard</h1>
                         </div>
                         <p className="mt-2 text-gray-600">Proactively manage client renewals and automate reminders.</p>
                     </div>
@@ -193,7 +197,8 @@ const App = () => {
                                 <div className="border-t border-gray-200">
                                     <div className="divide-y divide-gray-200">
                                         {groupedRenewals[month].map(renewal => (
-                                            <div key={renewal.email} className="p-4 grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
+                                            // Added a fallback key in case email is missing
+                                            <div key={renewal.email || Math.random()} className="p-4 grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
                                                 <div className="md:col-span-1">
                                                     <p className="font-semibold text-gray-800">{renewal.name}</p>
                                                     <p className="text-sm text-gray-500">{renewal.company_name}</p>
