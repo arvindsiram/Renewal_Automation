@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Bell, Mail, MessageSquare, Briefcase, ChevronDown, ChevronUp, CheckCircle, Clock, RefreshCw } from 'lucide-react';
 
 // --- N8N WEBHOOK URLs ---
-const GET_RENEWALS_URL = 'https://renewal-56rp.onrender.com/webhook/920faf43-19cc-4758-ac77-70d4a9b746d8';
-const SEND_REMINDER_URL_BASE = 'https://renewal-56rp.onrender.com/webhook/06271733-f596-4b16-ae1d-fa28cfda2141';
+const GET_RENEWALS_URL = 'https://renewal-56rp.onrender.com/webhook/c6880de3-e08a-4679-b058-fba9ef1b180f';
+const SEND_REMINDER_URL_BASE = 'https://renewal-56rp.onrender.com/webhook/371a560e-d84b-4a73-b881-aa712ab6ac16';
 
 const App = () => {
     const [renewals, setRenewals] = useState([]);
